@@ -115,6 +115,10 @@ module BootstrapForm
       collection_radio_buttons(*args)
     end
 
+    def form_actions(name = nil, &block)
+      form_group(name, class: "form-group form-actions", &block)
+    end
+
     def form_group(name = nil, options = {}, &block)
       options[:class] = "form-group"
       options[:class] << " has-error" if has_error?(name)
@@ -186,7 +190,7 @@ module BootstrapForm
       label_col = options.delete(:label_col)
       control_col = options.delete(:control_col)
 
-      form_group(method, label: { text: label, class: label_class }, help: help, label_col: label_col, control_col: control_col) do
+      form_group(method, label: { text: label, class: label_class, label_opts: options[:label_opts] }, help: help, label_col: label_col, control_col: control_col) do
         yield
       end
     end
