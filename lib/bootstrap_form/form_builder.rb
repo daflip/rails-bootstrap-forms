@@ -65,29 +65,31 @@ module BootstrapForm
 
     def check_box(name, options = {}, checked_value = "1", unchecked_value = "0", &block)
       options = options.symbolize_keys!
+      options[:label_opts] ||= {}
 
-      html = super(name, options.except(:label, :help, :inline), checked_value, unchecked_value)
+      html = super(name, options.except(:label, :help, :inline, :label_opts), checked_value, unchecked_value)
       label_content = block_given? ? capture(&block) : options[:label]
       html.concat(" ").concat(label_content || object.class.human_attribute_name(name) || name.to_s.humanize)
 
       if options[:inline]
-        label(name, html, class: "checkbox-inline")
+        label(name, html, {class: "checkbox-inline"}.merge(options[:label_opts]))
       else
         content_tag(:div, class: "checkbox") do
-          label(name, html)
+          label(name, html, options[:label_opts])
         end
       end
     end
 
     def radio_button(name, value, *args)
       options = args.extract_options!.symbolize_keys!
-      args << options.except(:label, :help, :inline)
+      options[:label_opts] ||= {}
+      args << options.except(:label, :help, :inline, :label_opts)
 
       html = super(name, value, *args) + " " + options[:label]
 
       css = "radio"
       css << "-inline" if options[:inline]
-      label("#{name}_#{value}", html, class: css)
+      label("#{name}_#{value}", html, {class: css}.merge(options[:label_opts]))
     end
 
     def collection_check_boxes(*args)
@@ -117,8 +119,8 @@ module BootstrapForm
       options[:class] = "form-group"
       options[:class] << " has-error" if has_error?(name)
 
-      content_tag(:div, options.except(:label, :help, :label_col, :control_col)) do
-        label = generate_label(name, options[:label], options[:label_col])
+      content_tag(:div, options.except(:label, :help, :label_col, :control_col, :label_opts)) do
+        label = generate_label(name, options[:label], options[:label_col], options[:label_opts])
         control_and_help = capture(&block).concat(generate_help(name, options[:help]))
         if horizontal?
           control_and_help = content_tag(:div, control_and_help, class: (options[:control_col] || control_col))
@@ -189,16 +191,16 @@ module BootstrapForm
       end
     end
 
-    def generate_label(name, options, custom_label_col)
+    def generate_label(name, options, custom_label_col, label_opts = {})
+      label_opts ||= {}
       if options
         classes = [options[:class], label_class]
         classes << (custom_label_col || label_col) if horizontal?
         options[:class] = classes.compact.join(" ")
-
-        label(name, options[:text], options.except(:text))
+        label(name, options[:text], options.except(:text).merge(label_opts))
       elsif horizontal?
         # no label. create an empty one to keep proper form alignment.
-        content_tag(:label, "", class: "#{label_class} #{label_col}")
+        content_tag(:label, "", { class: "#{label_class} #{label_col}" }.merge(label_opts))
       end
     end
 
