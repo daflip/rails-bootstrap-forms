@@ -105,16 +105,6 @@ module BootstrapForm
       end
     end
 
-    def check_boxes_collection(*args)
-      warn "'BootstrapForm#check_boxes_collection' is deprecated, use 'BootstrapForm#collection_check_boxes' instead"
-      collection_check_boxes(*args)
-    end
-
-    def radio_buttons_collection(*args)
-      warn "'BootstrapForm#radio_buttons_collection' is deprecated, use 'BootstrapForm#collection_radio_buttons' instead"
-      collection_radio_buttons(*args)
-    end
-
     def form_actions(name = nil, &block)
       form_group(name, class: "form-group form-actions", &block)
     end
@@ -122,9 +112,9 @@ module BootstrapForm
     def form_group(name = nil, options = {}, &block)
       options[:class] = "form-group"
       options[:class] << " has-error" if has_error?(name)
-
-      content_tag(:div, options.except(:label, :help, :label_col, :control_col, :label_opts)) do
-        label = generate_label(name, options[:label], options[:label_col], options[:label_opts])
+      group_attrs = if options[:without_group] then {} else options.except(:label, :help, :label_col, :control_col, :label_opts)  end
+      content_tag(:div, group_attrs) do
+        label = options[:without_label] ? nil : generate_label(name, options[:label], options[:label_col], options[:label_opts])
         control_and_help = capture(&block).concat(generate_help(name, options[:help]))
         if horizontal?
           control_and_help = content_tag(:div, control_and_help, class: (options[:control_col] || control_col))
@@ -190,7 +180,7 @@ module BootstrapForm
       label_col = options.delete(:label_col)
       control_col = options.delete(:control_col)
 
-      form_group(method, label: { text: label, class: label_class, label_opts: options[:label_opts] }, help: help, label_col: label_col, control_col: control_col) do
+      form_group(method, label: { text: label, class: label_class, label_opts: options[:label_opts]}, help: help, without_group: options[:without_group], label_col: label_col, control_col: control_col) do
         yield
       end
     end
